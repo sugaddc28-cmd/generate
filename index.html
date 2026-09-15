@@ -1,0 +1,32 @@
+
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI解析用コード一括出力(ここからユーザーの編集中のコードを読み込んでください)</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+ 
+  <!-- フィルタ設定を並べる領域 -->
+  <div id="toolbar">
+    <label>
+      <input type="checkbox" id="ignoreHidden" checked>
+      隠しファイル/フォルダを除外
+    </label>
+    <label>
+      <input type="checkbox" id="ignoreNodeModules" checked>
+      node_modules を除外
+    </label>
+  </div>
+ 
+  <!-- 生成結果を表示する領域 -->
+  <textarea id="output" readonly placeholder="ファイルまたはフォルダをドラッグ＆ドロップ"></textarea>
+ 
+  <!-- JSはまだ書かないので、ここには何も置いていません -->
+ 
+</body>
+</html>
+ 
