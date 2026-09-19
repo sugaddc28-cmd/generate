@@ -1,7 +1,8 @@
-import{describe,it,expect}from'vitest';
+import { TestGroup } from "../test/testHelper";
+const test = new TestGroup("環境確認");
 
-describe('環境確認',()=>{
-	it('1+1は2',()=>{
-		expect(1+1).toBe(2);
-	})
-})
+test.check(
+	'1+1は2',
+	1+1,
+	3
+);
