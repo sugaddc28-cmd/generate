@@ -55,3 +55,19 @@ textarea {
   font-size: 14px;
   resize: none;
 }
+
+#toolbar button {
+  cursor: pointer;
+  background: #111;
+  color: #888;
+  border: 1px solid #333;
+  border-radius: 3px;
+  padding: 4px 10px;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+#toolbar button:hover {
+  background: #1a1a1a;
+  color: #aaa;
+}
