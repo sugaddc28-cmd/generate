@@ -5,10 +5,14 @@ export class HandleTreeBuilder {
 		this.#ignoreRules = ignoreRules;
 	}
 
-	async build(dirHandle) {
+	async build(handle) {
+		// 単体ファイルの場合は先に返す
+		if(handle.kind ==='file')
+			return this.#buildSingleFile(handle);
+
 		const items = [];
 
-		for await (const child of dirHandle.values()) {
+		for await (const child of handle.values()) {
 			if (this.#matchesIgnoreRules(child.name)) continue;
 
 			if (child.kind === 'directory') {
@@ -26,7 +30,7 @@ export class HandleTreeBuilder {
 
 		return {
 			type: 'directory',
-			name: dirHandle.name,
+			name: handle.name,
 			children: items
 		};
 	}
@@ -74,5 +78,16 @@ export class HandleTreeBuilder {
 		// 残りの文字列にドットが含まれていれば、最後のドット以降は拡張子とする
 		if (!name.includes('.')) return '';
 		return name.slice(name.indexOf('.') + 1);
+	}
+
+	// 単一ファイルを、ファイル1件だけを持つ擬似ディレクトリツリーとして返す
+	#buildSingleFile(fileHandle) {
+		return {
+			type: 'directory',
+			name: fileHandle.name,
+			children: [
+				{ type: 'file', name: fileHandle.name, handle: fileHandle }
+			]
+		};
 	}
 }

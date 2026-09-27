@@ -1,13 +1,9 @@
-
 // ドラッグ&ドロップを受け取り、handleを渡すイベント
-export class DropZone{
-	#onFile;
-	#onDirectory;
+export class DropZone {
+	#onDrop;
 
-	constructor(onFile, onDirectory){
-		this.#onFile = onFile;
-		this.#onDirectory = onDirectory;
-
+	constructor(onDrop) {
+		this.#onDrop = onDrop;
 
 		// ドラッグ中の既定の動作を止める
 		window.addEventListener('dragover', (e) => e.preventDefault());
@@ -17,7 +13,7 @@ export class DropZone{
 		window.addEventListener('drop', (e) => this.handleDrop(e));
 	}
 
-	async handleDrop(event){
+	async handleDrop(event) {
 		const items = Array.from(event.dataTransfer.items);
 
 		for (const item of items) {
@@ -25,11 +21,7 @@ export class DropZone{
 			const handle = await item.getAsFileSystemHandle();
 			if (!handle) continue;
 
-			if (handle.kind === 'directory') {
-				this.#onDirectory(handle);
-			} else if (handle.kind === 'file') {
-				this.#onFile(handle);
-			}
+			this.#onDrop(handle);
 			break;
 		}
 	}

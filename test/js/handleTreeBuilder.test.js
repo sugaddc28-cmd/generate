@@ -3,22 +3,37 @@ import { HandleTreeBuilder } from '../../js/handleTreeBuilder.js';
 
 const test = new TestGroup();
 
-// テスト用データ
-const fileHandle = {
-	kind:'file',
-	name:'test.txt'
-};
-
-const dirHandle = {
-	kind:'directory',
-	name:'root',
-
-	async *values(){
-		yield fileHandle;
-	}
+// --- テスト用ヘルパー関数 ---
+function makeFile(name) {
+	return { kind: 'file', name };
 }
 
-// テスト実行
+function makeDir(name, children = []) {
+	return {
+		kind: 'directory',
+		name,
+		async *values() {
+			yield* children;
+		}
+	};
+}
+
+// 走査されたら失敗するディレクトリを生成するヘルパー
+function makeErrorDir(name, errorMessage) {
+	return {
+		kind: 'directory',
+		name,
+		async *values() {
+			throw new Error(errorMessage);
+		}
+	};
+}
+
+
+// --- 1. 基本的なファイル取得のテスト ---
+const fileHandle = makeFile('test.txt');
+const dirHandle = makeDir('root', [fileHandle]);
+
 const builder = new HandleTreeBuilder();
 test.checkFunction(
 	'ファイルを取得できる',
@@ -37,36 +52,12 @@ test.checkFunction(
 );
 
 
-// テスト用データ
+// --- 2. ignoreRules (prefix, exact) のテスト ---
+const jsHandle = makeFile('a.js');
+const hiddenHandle = makeFile('.gitignore');
+const nodeModulesHandle = makeErrorDir('node_modules', 'node_modulesの中を走査してはいけない');
 
-const jsHandle = {
-	kind: 'file',
-	name: 'a.js'
-};
-
-const hiddenHandle = {
-	kind: 'file',
-	name: '.gitignore'
-};
-
-// 走査されたら失敗するようにしておく(打ち切られている確認)
-const nodeModulesHandle = {
-	kind: 'directory',
-	name: 'node_modules',
-	async *values() {
-		throw new Error('node_modulesの中を走査してはいけない');
-	}
-};
-
-const dirWithIgnored = {
-	kind: 'directory',
-	name: 'root',
-	async *values() {
-		yield hiddenHandle;
-		yield nodeModulesHandle;
-		yield jsHandle;
-	}
-};
+const dirWithIgnored = makeDir('root', [hiddenHandle, nodeModulesHandle, jsHandle]);
 
 const builderWithRules = new HandleTreeBuilder([
 	{ type: 'prefix', value: '.' },
@@ -90,24 +81,10 @@ test.checkFunction(
 );
 
 
-function makeFile(name) {
-	return { kind: 'file', name };
-}
-
-function makeDir(name, children = []) {
-	return {
-		kind: 'directory',
-		name,
-		async *values() {
-			yield* children;
-		}
-	};
-}
-
-// --- suffixのテスト ---
+// --- 3. suffixのテスト ---
 const logFile = makeFile('debug.log');
 const jsFile = makeFile('app.js');
-const logJsFile = makeFile('x.log.js'); // ".log"で終わっていないので残るはず
+const logJsFile = makeFile('x.log.js');
 
 const suffixBuilder = new HandleTreeBuilder([
 	{ type: 'suffix', value: '.log' }
@@ -126,8 +103,8 @@ test.checkFunction(
 	}
 );
 
-// --- 並び順のテスト ---
-// わざとバラバラの順で渡す
+
+// --- 4. 並び順のテスト ---
 const bJs = makeFile('b.js');
 const aTxt = makeFile('a.txt');
 const gitignore = makeFile('.gitignore');
@@ -152,6 +129,25 @@ test.checkFunction(
 			{ type: 'file', name: 'a.js', handle: aJs },
 			{ type: 'file', name: 'b.js', handle: bJs },
 			{ type: 'file', name: 'a.txt', handle: aTxt }
+		]
+	}
+);
+
+// --- 5. build()にファイルハンドルを直接渡した場合 ---
+const soloFile = makeFile('solo.txt');
+
+test.checkFunction(
+	'build()にファイルハンドルを渡すと、そのファイル1件だけを持つ擬似ディレクトリツリーを返す',
+	() => builder.build(soloFile),
+	{
+		type: 'directory',
+		name: 'solo.txt',
+		children: [
+			{
+				type: 'file',
+				name: 'solo.txt',
+				handle: soloFile
+			}
 		]
 	}
 );
